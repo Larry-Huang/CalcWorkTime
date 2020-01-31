@@ -1,0 +1,25 @@
+﻿(CASE WHEN (convert(varchar(10), logon_date_min, 126)+' '+convert(char(8), lotx.logon_date_min, 108)) <  (convert(varchar(10), logon_date, 126)+ ' 04:00:00') 
+        THEN 420 + datediff(MINUTE,
+        (SELECT MAX(c) FROM (VALUES(logon_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' 00:00:00',120))) T(c)),
+        CONVERT(datetime,CONVERT(char(10),logon_date, 20) +' 04:00:00', 120))
+WHEN (convert(varchar(10), logon_date_min, 126)+' '+convert(char(8), lotx.logon_date_min, 108)) <  (convert(varchar(10), logon_date, 126)+ ' 09:00:00') 
+        THEN 180 + datediff(MINUTE,
+        (SELECT MAX(c) FROM (VALUES(logon_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' 05:00:00',120))) T(c)),
+        CONVERT(datetime,CONVERT(char(10),logon_date, 20) +' 09:00:00', 120))
+WHEN (convert(varchar(10), logon_date_min, 126)+' '+convert(char(8), lotx.logon_date_min, 108)) <  (convert(varchar(10), logon_date, 126)+ ' 12:30:00') 
+        THEN 0 + datediff(MINUTE,
+        (SELECT MAX(c) FROM (VALUES(logon_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' 09:30:00',120))) T(c)),
+        CONVERT(datetime,CONVERT(char(10),logon_date, 20) +' 12:30:00', 120))
+ELSE 0 END)+ -1 * 660 +(CASE  WHEN (convert(varchar(10), logoff_date, 126)+' '+convert(char(8), lotx.logoff_date_min, 108)) < (convert(varchar(10), logon_date, 126)+ ' 04:00:00') 
+        THEN 0 +datediff(MINUTE,
+        CONVERT(datetime,CONVERT(char(10), logon_date, 20) +' 00:00:00',120),
+        (SELECT MAX(c) FROM (VALUES(lotx.logoff_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' 00:00:00',120))) T(c)))
+ WHEN (convert(varchar(10), logoff_date, 126)+' '+convert(char(8), lotx.logoff_date_min, 108)) < (convert(varchar(10), logon_date, 126)+ ' 09:00:00') 
+        THEN 240 +datediff(MINUTE,
+        CONVERT(datetime,CONVERT(char(10), logon_date, 20) +' 05:00:00',120),
+        (SELECT MAX(c) FROM (VALUES(lotx.logoff_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' 05:00:00',120))) T(c)))
+ WHEN (convert(varchar(10), logoff_date, 126)+' '+convert(char(8), lotx.logoff_date_min, 108)) < (convert(varchar(10), logon_date, 126)+ ' 12:30:00') 
+        THEN 480 +datediff(MINUTE,
+        CONVERT(datetime,CONVERT(char(10), logon_date, 20) +' 09:30:00',120),
+        (SELECT MAX(c) FROM (VALUES(lotx.logoff_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' 09:30:00',120))) T(c)))
+ELSE 660 END)
