@@ -28,11 +28,15 @@ namespace ConsoleApplication1
                 string _start = t.Start.Hours.ToString().PadLeft(2, '0') + ":" + t.Start.Minutes.ToString().PadLeft(2, '0') + ":00";
                 string _end = t.End.Hours.ToString().PadLeft(2, '0') + ":" + t.End.Minutes.ToString().PadLeft(2, '0') + ":00";
                 var _firstStart = result.First().Start.Days;
+                if (result.First().Start.Hours.ToString().PadLeft(2, '0') + ":" + result.First().Start.Minutes.ToString().PadLeft(2, '0') == "00:00")
+                {
+                    _firstStart = _firstStart - 1;
+                }
                 if (t.End.Days == _firstStart)
                 {
                     sbStart.Append(FormatStart(_start, _end, totalwoTime, 0));
                 }
-                if (t.End.Days != _firstStart)
+                else if (t.End.Days != _firstStart)
                 {
                     sbStart.Append(FormatStart(_start, _end, totalwoTime, (t.End.Days - _firstStart)));
                 }
@@ -54,11 +58,15 @@ namespace ConsoleApplication1
                 string _start = t.Start.Hours.ToString().PadLeft(2, '0') + ":" + t.Start.Minutes.ToString().PadLeft(2, '0') + ":00";
                 string _end = t.End.Hours.ToString().PadLeft(2, '0') + ":" + t.End.Minutes.ToString().PadLeft(2, '0') + ":00";
                 var _firstStart = result.First().Start.Days;
+                if (result.First().Start.Hours.ToString().PadLeft(2, '0') + ":" + result.First().Start.Minutes.ToString().PadLeft(2, '0') == "00:00")
+                {
+                    _firstStart = _firstStart - 1;
+                }
                 if (t.End.Days == _firstStart)
                 {
                     sbEnd.Append(FormatEnd(_start, _end, sumtotalwoTime, 0));
                 }
-                if (t.End.Days != _firstStart)
+                else if (t.End.Days != _firstStart)
                 {
                     sbEnd.Append(FormatEnd(_start, _end, sumtotalwoTime, (t.End.Days - _firstStart)));
                 }
@@ -76,17 +84,20 @@ namespace ConsoleApplication1
             if (addDay != 0 && _e > _s)
             {
                 //起始及結束都跨日 
-                result = string.Format(@" WHEN (convert(varchar(10), logon_date_min, 126)+' '+convert(char(8), lotx.logon_date_min, 108)) <  (convert(varchar(10), DATEADD(DAY,{3},logon_date), 126)+ ' {1}') THEN {2} + datediff(MINUTE,(SELECT MAX(c) FROM (VALUES(logon_date_min),(CONVERT(datetime,CONVERT(char(10),DATEADD(DAY,{3},logon_date),20) + ' {0}',120))) T(c)),CONVERT(datetime,CONVERT(char(10), DATEADD(DAY,{3},logon_date), 20) +' {1}', 120)) ", startTime, endTime, lifttotal, addDay);
+                result = string.Format(@" WHEN (convert(varchar(10), logon_date_min, 126)+' '+convert(char(8), lotx.logon_date_min, 108)) <  (convert(varchar(10), DATEADD(DAY,{3},shift_date), 126)+ ' {1}') THEN {2} + datediff(MINUTE,(SELECT MAX(c) FROM (VALUES(logon_date_min),(CONVERT(datetime,CONVERT(char(10),DATEADD(DAY,{3},shift_date),20) + ' {0}',120))) T(c)),CONVERT(datetime,CONVERT(char(10), DATEADD(DAY,{3},shift_date), 20) +' {1}', 120)) "
+                    ,startTime, endTime, lifttotal, addDay);
             }
             else if (addDay != 0 && _s > _e)
             {
                 ////起始沒跨日 結束跨日
-                result = string.Format(@" WHEN (convert(varchar(10), logon_date_min, 126)+' '+convert(char(8), lotx.logon_date_min, 108)) <  (convert(varchar(10), DATEADD(DAY,{3},logon_date), 126)+ ' {1}') THEN {2} + datediff(MINUTE,(SELECT MAX(c) FROM (VALUES(logon_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' {0}',120))) T(c)),CONVERT(datetime,CONVERT(char(10), DATEADD(DAY,{3},logon_date), 20) +' {1}', 120)) ", startTime, endTime, lifttotal, addDay);
+                result = string.Format(@" WHEN (convert(varchar(10), logon_date_min, 126)+' '+convert(char(8), lotx.logon_date_min, 108)) <  (convert(varchar(10), DATEADD(DAY,{3},shift_date), 126)+ ' {1}') THEN {2} + datediff(MINUTE,(SELECT MAX(c) FROM (VALUES(logon_date_min),(CONVERT(datetime,CONVERT(char(10),shift_date,20) + ' {0}',120))) T(c)),CONVERT(datetime,CONVERT(char(10), DATEADD(DAY,{3},shift_date), 20) +' {1}', 120)) "
+                    , startTime, endTime, lifttotal, addDay);
             }
             else
             {
-                //todo: 沒跨日 (不加)
-                result = string.Format(@" WHEN (convert(varchar(10), logon_date_min, 126)+' '+convert(char(8), lotx.logon_date_min, 108)) <  (convert(varchar(10), logon_date, 126)+ ' {1}') THEN {2} + datediff(MINUTE,(SELECT MAX(c) FROM (VALUES(logon_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' {0}',120))) T(c)),CONVERT(datetime,CONVERT(char(10),logon_date, 20) +' {1}', 120)) ", startTime, endTime, lifttotal);
+                //todo: 沒跨日
+                result = string.Format(@" WHEN (convert(varchar(10), logon_date_min, 126)+' '+convert(char(8), lotx.logon_date_min, 108)) <  (convert(varchar(10), shift_date, 126)+ ' {1}') THEN {2} + datediff(MINUTE,(SELECT MAX(c) FROM (VALUES(logon_date_min),(CONVERT(datetime,CONVERT(char(10),shift_date,20) + ' {0}',120))) T(c)),CONVERT(datetime,CONVERT(char(10),shift_date, 20) +' {1}', 120)) "
+                    , startTime, endTime, lifttotal);
 
             }
             return result;
@@ -102,18 +113,21 @@ namespace ConsoleApplication1
             if (addDay != 0 && _e > _s)
             {
             //起始及結束都跨日 
-                result = string.Format(@" WHEN (convert(varchar(10), logoff_date, 126)+' '+convert(char(8), lotx.logoff_date_min, 108)) < (convert(varchar(10), DATEADD(DAY,{3},logon_date), 126)+ ' {1}') THEN {2} +datediff(MINUTE,CONVERT(datetime,CONVERT(char(10),DATEADD(DAY,{3},logon_date), 20) +' {0}',120),(SELECT MAX(c) FROM (VALUES(lotx.logoff_date_min),(CONVERT(datetime,CONVERT(char(10),DATEADD(DAY,{3},logon_date),20) + ' {0}',120))) T(c))) ", startTime, endTime, lifttotal, addDay);
+                result = string.Format(@" WHEN (convert(varchar(10), logoff_date, 126)+' '+convert(char(8), lotx.logoff_date_min, 108)) < (convert(varchar(10), DATEADD(DAY,{3},shift_date), 126)+ ' {1}') THEN {2} +datediff(MINUTE,CONVERT(datetime,CONVERT(char(10),DATEADD(DAY,{3},shift_date), 20) +' {0}',120),(SELECT MAX(c) FROM (VALUES(lotx.logoff_date_min),(CONVERT(datetime,CONVERT(char(10),DATEADD(DAY,{3},shift_date),20) + ' {0}',120))) T(c))) "
+                    , startTime, endTime, lifttotal, addDay);
 
             }
             //起始沒跨日 結束跨日
             else if (addDay != 0 && _s > _e)
             {
-                result = string.Format(@" WHEN (convert(varchar(10), logoff_date, 126)+' '+convert(char(8), lotx.logoff_date_min, 108)) < (convert(varchar(10), DATEADD(DAY,{3},logon_date), 126)+ ' {1}') THEN {2} +datediff(MINUTE,CONVERT(datetime,CONVERT(char(10),logon_date, 20) +' {0}',120),(SELECT MAX(c) FROM (VALUES(lotx.logoff_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' {0}',120))) T(c))) ", startTime, endTime, lifttotal, addDay);
+                result = string.Format(@" WHEN (convert(varchar(10), logoff_date, 126)+' '+convert(char(8), lotx.logoff_date_min, 108)) < (convert(varchar(10), DATEADD(DAY,{3},shift_date), 126)+ ' {1}') THEN {2} +datediff(MINUTE,CONVERT(datetime,CONVERT(char(10),shift_date, 20) +' {0}',120),(SELECT MAX(c) FROM (VALUES(lotx.logoff_date_min),(CONVERT(datetime,CONVERT(char(10),shift_date,20) + ' {0}',120))) T(c))) "
+                    , startTime, endTime, lifttotal, addDay);
             }
             else
             {
                 //都沒跨日
-                result = string.Format(@" WHEN (convert(varchar(10), logoff_date, 126)+' '+convert(char(8), lotx.logoff_date_min, 108)) < (convert(varchar(10), logon_date, 126)+ ' {1}') THEN {2} +datediff(MINUTE,CONVERT(datetime,CONVERT(char(10), logon_date, 20) +' {0}',120),(SELECT MAX(c) FROM (VALUES(lotx.logoff_date_min),(CONVERT(datetime,CONVERT(char(10),logon_date,20) + ' {0}',120))) T(c))) ", startTime, endTime, lifttotal, addDay);
+                result = string.Format(@" WHEN (convert(varchar(10), logoff_date, 126)+' '+convert(char(8), lotx.logoff_date_min, 108)) < (convert(varchar(10), shift_date, 126)+ ' {1}') THEN {2} +datediff(MINUTE,CONVERT(datetime,CONVERT(char(10), shift_date, 20) +' {0}',120),(SELECT MAX(c) FROM (VALUES(lotx.logoff_date_min),(CONVERT(datetime,CONVERT(char(10),shift_date,20) + ' {0}',120))) T(c))) "
+                    , startTime, endTime, lifttotal, addDay);
                
             }
             return result;
